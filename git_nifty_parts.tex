@@ -1,0 +1,482 @@
+\documentclass[11pt,xetex]{beamer}
+
+\usetheme[numbering=none]{metropolis}
+
+\usepackage{hyperref}
+\usepackage{minted}
+\AtBeginEnvironment{minted}{\fontsize{10}{10}\selectfont}
+\usemintedstyle{trac}
+
+\setsansfont{League Spartan}
+
+\definecolor{normalTextColor}{HTML}{303030}
+\definecolor{alertedTextColor}{HTML}{EF746F}
+\definecolor{exampleTextColor}{HTML}{1693A5}
+
+\setbeamercolor{normal text}{fg=normalTextColor, bg=black!2}
+\setbeamercolor{alerted text}{fg=alertedTextColor, bg=black!2}
+\setbeamercolor{example text}{fg=exampleTextColor, bg=black!2}
+
+\title{Git: (some of) the nifty parts}
+\date{\today}
+\author{Matthias Nilsson}
+%\institute{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+
+\begin{frame}{}
+  \Large
+  About me:
+
+  \normalsize
+  \begin{itemize}
+    \item Git user since 2010
+    \item Worked with 100+ developers on the same code base for multiple years
+    \item My favorite methodology is Cookie Driven Development
+  \end{itemize}
+\end{frame}
+
+\section*{Setting the stage}
+
+\begin{frame}[fragile]{}
+  \begin{center}
+    \Huge \mintinline{text}{git bisect}
+  \end{center}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \LARGE Relies on good commit history
+  \end{center}
+\end{frame}
+
+\section*{Commit history}
+
+\begin{frame}{}
+  \begin{center}
+    \Huge What is a commit?
+  \end{center}
+  \pause
+
+  \large
+  \begin{itemize}
+    \item A way of saving your work
+    \pause
+    \item A snapshot of a previous state
+    \pause
+    \item A way to document development over time
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \Huge Why is history important?
+  \end{center}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \Huge Because it tells us what has changed
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \begin{minted}{bash}
+    d690bbc add content to foo
+    85c6bfe fix typo
+    b4a6944 WIP: add content to foo
+  \end{minted}
+
+  \center \Large vs.
+
+  \normalsize
+  \begin{minted}{bash}
+    0a5e89d add content to foo
+  \end{minted}
+\end{frame}
+
+\begin{frame}{}
+  \LARGE Not all history is worth keeping
+\end{frame}
+
+\begin{frame}{}
+  \LARGE Not every commit should be saved
+\end{frame}
+
+\section*{Cleaning up history}
+
+\begin{frame}{}
+  \begin{center}
+    \huge \mintinline{text}{git commit --amend}
+  \end{center}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \huge Lets you edit the last commit
+  \end{center}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \huge But what if that's not enough?
+  \end{center}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \huge \mintinline{text}{git rebase --interactive}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large From the manual for \mintinline{text}{git-rebase(1)}:
+
+  \large
+  \begin{minted}{text}
+    The interactive mode is meant for this type of
+    workflow:
+
+      1. have a wonderful idea
+      2. hack on the code
+      3. prepare a series for submission
+      4. submit
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Our original history:
+
+  \begin{minted}{bash}
+    885bb69 add content to bar
+    d690bbc add content to foo
+    85c6bfe fix typo
+    b4a6944 WIP: add content to foo
+    bb3be90 initial commit
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Specify starting point:
+
+  \begin{minted}{bash}
+    $ git rebase -i bb3be90 # initial commit
+  \end{minted}
+  \pause
+
+  \normalsize
+  This lets you edit the list of commits in your editor.
+  \pause
+
+  (Pro tip: always have an initial commit you can use as a starting point.)
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  We decide what should be done with the commits:
+
+  \begin{minted}{bash}
+    reword b4a6944 WIP: add content to foo
+    fixup 85c6bfe fix typo
+    fixup d690bbc add content to foo
+    pick 885bb69 add content to bar
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Our new history looks like this:
+
+  \begin{minted}{bash}
+    6a38155 add content to bar
+    1436cf1 add content to foo
+    bb3be90 initial commit
+  \end{minted}
+
+  \large
+  (Note that the hashes have changed.)
+
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  You will have to tell Git to overwrite the remote:
+
+  \begin{minted}{bash}
+    $ git push --force
+  \end{minted}
+
+  \normalsize
+  (Provided that the commits we rebased had been pushed earlier.)
+\end{frame}
+
+\begin{frame}{}
+  \LARGE
+  Use it to clean up branches before merging
+\end{frame}
+
+\begin{frame}{}
+  \begin{alertblock}{\Huge NOTE}
+    \Large
+    Make sure you coordinate with your collaborators
+  \end{alertblock}
+\end{frame}
+
+\begin{frame}{}
+  \LARGE
+  Rewriting history can lead to trouble for others
+  \pause
+
+  \normalsize
+  A branch containing commits that no longer exist on the remote will
+  result in nasty conflicts.
+\end{frame}
+
+\begin{frame}{}
+  \Huge Coordination is the key
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \LARGE
+  Don't use \mintinline{text}{rebase} for "public" commits
+  \pause
+
+  \large
+  (E.g. \mintinline{text}{master} in a public repo or a branch that
+  many are based on)
+\end{frame}
+
+\section*{Recovering from a history rewrite}
+
+\begin{frame}{}
+  \Large
+  Our collaborator has rebased the branch we are working on
+  \pause
+
+  We have unpushed commits in that branch
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Our branch:
+
+  \begin{minted}{bash}
+    819defb add README
+    885bb69 add content to bar
+    d690bbc add content to foo
+    85c6bfe fix typo
+    b4a6944 WIP: add content to foo
+    bb3be90 initial commit
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  The remote branch:
+
+  \begin{minted}{bash}
+    6a38155 add content to bar
+    1436cf1 add content to foo
+    bb3be90 initial commit
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Create a temp branch based on your local branch:
+
+  \begin{minted}{bash}
+    $ git checkout -b add-foo-and-bar-temp
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Get your local branch up to date with the remote:
+
+  \begin{minted}{bash}
+    $ git branch -D add-foo-and-bar
+    $ git checkout -t origin/add-foo-and-bar
+  \end{minted}
+  \pause
+
+  Or
+
+  \begin{minted}{bash}
+    $ git checkout add-foo-and-bar
+    # find out how many commits differ
+    $ git fetch --all && git status
+    $ git reset --hard HEAD~n
+    $ git pull
+  \end{minted}
+  \pause
+
+  Or
+
+  \begin{minted}{bash}
+    $ git checkout add-foo-and-bar
+    $ git reset --hard origin/add-foo-and-bar
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Pick your unpushed commits:
+
+  \begin{minted}{bash}
+    # on branch add-foo-and-bar
+    # get commit hashes
+    $ git log add-foo-and-bar-temp
+    $ git cherry-pick 819defb
+  \end{minted}
+
+  \normalsize
+  (I tend to only cherry-pick individual commits.)
+\end{frame}
+
+\section*{Other flavors of rebase}
+
+\begin{frame}[fragile]{}
+  \Large
+  Rant: \mintinline{text}{git pull} should never result in a merge
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Tell Git to only apply remote changes if they can be fast-forwarded:
+
+  \begin{center}
+    \mintinline{text}{git config --global merge.ff only}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Pull in remote changes and apply your local commits after:
+
+  \begin{center}
+    \mintinline{text}{git pull --rebase}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \LARGE Home assignment:
+
+  \Large
+  How can we use \mintinline{text}{git pull --rebase}
+  to recover from a history rewrite?
+  \pause
+
+  \normalsize
+  (Tip: \mintinline{text}{git rebase --interactive} is a good start.)
+  \pause
+
+  Bonus question: When will this not work?
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Use \mintinline{text}{git rebase} to keep up to date:
+
+  \begin{minted}{bash}
+    $ git checkout master && git pull
+    $ git checkout -b my-feature-branch
+    # do stuff: add/commit/push
+    # prepare for pull request
+    $ git checkout master && git pull
+    $ git checkout my-feature-branch
+    # add the new changes to your branch
+    $ git rebase master
+  \end{minted}
+\end{frame}
+
+\section*{When things go horribly wrong}
+
+\begin{frame}{}
+  \begin{center}
+    \Huge \mintinline{text}{git reflog}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  \mintinline{text}{git reflog} tracks changes to
+  \mintinline{text}{HEAD} locally:
+
+  \begin{minted}[fontsize=\tiny]{bash}
+    3783c49 HEAD@{0}: cherry-pick: completely rewrite bar
+    d5b962e HEAD@{1}: reset: moving to HEAD~1
+    ac48e40 HEAD@{2}: rebase -i (finish): returning to refs/heads/master
+    ac48e40 HEAD@{3}: rebase -i (pick): completely rewrite bar
+    d5b962e HEAD@{4}: rebase -i (pick): add content to bar
+    97e39a3 HEAD@{5}: rebase -i (fixup): add content to foo
+    28a4547 HEAD@{6}: rebase -i (fixup): # This is a combination of 2 commits.
+    d47e71c HEAD@{7}: rebase -i (reword): add content to foo
+    b4a6944 HEAD@{8}: cherry-pick: fast-forward
+    bb3be90 HEAD@{9}: rebase -i (start): checkout bb3be9022765add167e4d014479a8104d5c7db79
+    819defb HEAD@{10}: checkout: moving from foo to master
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{}
+  \Large
+  Using \mintinline{text}{git reflog} we can find a point to step back
+  to:
+
+  \begin{minted}{bash}
+    $ git rebase -i <commit>
+    # here things go horribly wrong
+    $ git reflog # to find a point before our mistake
+    $ git reset --hard <another commit>
+  \end{minted}
+\end{frame}
+
+\begin{frame}{}
+  \begin{alertblock}{\Huge NOTE}
+    Careful when deleting branches, \mintinline{text}{git reflog} will
+    not help you there.
+  \end{alertblock}
+\end{frame}
+
+\section*{Recap}
+
+\begin{frame}{}
+  \Large
+  Git commands to make your life easier:
+
+  \normalsize
+  \begin{itemize}
+    \item \mintinline{text}{git rebase} to ensure you have a clean history
+    \item \mintinline{text}{git cherry-pick} to pick (individual) commits
+    \item \mintinline{text}{git reflog} to recover from mishaps
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{}
+  \begin{center}
+    \Huge
+    Communication is essential
+  \end{center}
+\end{frame}
+
+\begin{frame}[standout]{}
+  \begin{center}
+    \Huge
+    Questions?
+  \end{center}
+\end{frame}
+
+\begin{frame}[standout]{}
+  \begin{center}
+    This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International.
+    \url{https://creativecommons.org/licenses/by-sa/4.0/}
+  \end{center}
+\end{frame}
+
+\end{document}
